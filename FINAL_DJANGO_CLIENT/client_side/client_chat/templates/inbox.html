@@ -41,7 +41,7 @@
             font-size: 24px;
         }
 
-        .logout-btn {
+        .btn {
             background-color: #ffffff;
             color: #1877f2;
             border: none;
@@ -52,7 +52,7 @@
             font-weight: bold;
         }
 
-        .logout-btn:hover {
+        .btn:hover {
             background-color: #e6e6e6;
         }
 
@@ -62,10 +62,37 @@
             overflow: hidden;
         }
 
-        .sender-list {
-            width: 200px;
+        .sidebar {
+            width: 250px;
             overflow-y: auto;
             border-right: 1px solid #dddfe2;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-type-list {
+            display: flex;
+            border-bottom: 1px solid #dddfe2;
+        }
+
+        .message-type-item {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            font-weight: bold;
+        }
+
+        .message-type-item:hover,
+        .message-type-item.active {
+            background-color: #1877f2;
+            color: white;
+        }
+
+        .sender-list {
+            overflow-y: auto;
+            max-height: calc(100vh - 120px);
         }
 
         .sender-item {
@@ -105,8 +132,7 @@
         }
 
         .user {
-            background-color: #0084ff;
-            color: white;
+            background-color: #e5e5ea;
             align-self: flex-end;
         }
 
@@ -144,16 +170,25 @@
                 flex-direction: column;
             }
 
-            .sender-list {
+            .sidebar {
                 width: 100%;
                 border-right: none;
                 border-bottom: 1px solid #dddfe2;
-                max-height: 150px;
+            }
+
+            .message-type-list {
+                flex-direction: row;
+            }
+
+            .sender-list {
+                display: flex;
+                overflow-x: auto;
+                max-height: none;
             }
 
             .sender-item {
                 padding: 10px;
-                display: inline-block;
+                white-space: nowrap;
             }
         }
     </style>
@@ -164,29 +199,42 @@
         <header class="header">
             <h1>Inbox</h1>
             <div>
-                <a href="{% url 'send_message' %}" class="logout-btn">Send Message</a>
-                <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+                <a href="{% url 'send_message' %}" class="btn">Send Message</a>
+                <a href="{% url 'logout' %}" class="btn">Logout</a>
             </div>
         </header>
         <div class="content-area">
-            <aside class="sender-list" id="senderList">
-                <div class="sender-item active" data-sender="all">All Messages</div>
-                <!-- Unique senders will be populated here by JavaScript -->
+            <aside class="sidebar">
+                <div class="message-type-list" id="messageTypeList">
+                    <div class="message-type-item active" data-type="received">Received</div>
+                    <div class="message-type-item" data-type="sent">Sent</div>
+                </div>
+                <div class="sender-list" id="senderList">
+                    <div class="sender-item active" data-sender="all">All Messages</div>
+                    <!-- Unique senders will be populated here by JavaScript -->
+                </div>
             </aside>
             <main class="chat-area">
                 <div class="message-container" id="messageContainer">
-                    {% for message in messages %}
-                    <div class="message {% if message.sender_name == request.user.username %}user{% else %}sender{% endif %}"
-                        data-sender="{{ message.sender_name }}" data-sender-id="{{ message.sender_id }}">
-                        {% if message.sender_name != request.user.username %}
+                    {% for message in received_messages %}
+                    <div class="message sender" data-sender="{{ message.sender_name }}" data-type="received"
+                        data-timestamp="{{ message.timestamp|date:'Y-m-d' }}">
                         <div class="sender-name">{{ message.sender_name }}</div>
-                        {% endif %}
                         <div>{{ message.decrypted_content }}</div>
-                        <div class="timestamp">{{ message.timestamp|date:"g:i A, M d" }}</div>
+                        <div class="timestamp">{{ message.timestamp }}</div>
                     </div>
-                    {% empty %}
-                    <p>No messages in your inbox.</p>
                     {% endfor %}
+                    {% for message in sent_messages %}
+                    <div class="message user" data-sender="{{ message.recipient_name }}" data-type="sent"
+                        data-timestamp="{{ message.timestamp|date:'Y-m-d' }}">
+                        <div class="sender-name">To: {{ message.recipient_name }}</div>
+                        <div>{{ message.decrypted_content }}</div>
+                        <div class="timestamp">{{ message.timestamp }}</div>
+                    </div>
+                    {% endfor %}
+                    {% if not received_messages and not sent_messages %}
+                    <p>No messages in your inbox.</p>
+                    {% endif %}
                 </div>
             </main>
         </div>
@@ -194,38 +242,61 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const messageTypeList = document.getElementById('messageTypeList');
             const senderList = document.getElementById('senderList');
             const messageContainer = document.getElementById('messageContainer');
-            const messages = messageContainer.getElementsByClassName('message');
-            const uniqueSenders = new Map();
+            const messages = Array.from(messageContainer.getElementsByClassName('message'));
+            const uniqueSenders = new Set();
 
-            // Extract unique senders from messages
+            // Sort messages by timestamp (newest to oldest)
+            messages.sort((a, b) => {
+                return parseInt(b.getAttribute('data-timestamp')) - parseInt(a.getAttribute('data-timestamp'));
+            });
+
+            // Reorder messages in the DOM
+            messages.forEach(message => messageContainer.appendChild(message));
+
+            // Extract unique senders from received messages
             for (let message of messages) {
-                const senderName = message.getAttribute('data-sender');
-                const senderId = message.getAttribute('data-sender-id');
-                if (senderName !== '{{ request.user.username }}' && !uniqueSenders.has(senderId)) {
-                    uniqueSenders.set(senderId, senderName);
+                if (message.getAttribute('data-type') === 'received') {
+                    const senderName = message.getAttribute('data-sender');
+                    if (senderName !== '{{ request.user.username }}') {
+                        uniqueSenders.add(senderName);
+                    }
                 }
             }
 
             // Populate sender list
-            uniqueSenders.forEach((name, id) => {
+            uniqueSenders.forEach((name) => {
                 const senderItem = document.createElement('div');
                 senderItem.className = 'sender-item';
                 senderItem.setAttribute('data-sender', name);
-                console.log(name);
-                senderItem.setAttribute('data-sender-id', id);
                 senderItem.textContent = name;
                 senderList.appendChild(senderItem);
             });
 
-            function filterMessages(sender) {
+            function filterMessages(sender, type) {
                 for (let message of messages) {
-                    if (sender === 'all' || message.getAttribute('data-sender') === sender) {
+                    const messageSender = message.getAttribute('data-sender');
+                    const messageType = message.getAttribute('data-type');
+                    if ((sender === 'all' || messageSender === sender) && (type === 'all' || messageType === type)) {
                         message.style.display = 'block';
                     } else {
                         message.style.display = 'none';
                     }
+                }
+            }
+
+            function toggleSenderList(type) {
+                if (type === 'sent') {
+                    // Remove existing send message link
+                    const existingLink = document.querySelector('.send-message-link');
+                    if (existingLink) {
+                        existingLink.remove();
+                    }
+                    senderList.style.display = 'none';
+                } else {
+                    senderList.style.display = 'block';
                 }
             }
 
@@ -237,7 +308,8 @@
                     }
                     e.target.classList.add('active');
                     const selectedSender = e.target.getAttribute('data-sender');
-                    filterMessages(selectedSender);
+                    const selectedType = messageTypeList.querySelector('.message-type-item.active').getAttribute('data-type');
+                    filterMessages(selectedSender, selectedType);
 
                     // Remove existing send message link
                     const existingLink = document.querySelector('.send-message-link');
@@ -247,28 +319,52 @@
 
                     // Add send message link for the selected sender
                     if (selectedSender !== 'all') {
-                        const senderId = e.target.getAttribute('data-sender');
                         const sendMessageLink = document.createElement('a');
-                        sendMessageLink.href = `{% url 'send_message' %}?recipient=${senderId}`;
+                        sendMessageLink.href = `{% url 'send_message' %}?recipient=${selectedSender}`;
                         sendMessageLink.className = 'send-message-link';
                         sendMessageLink.textContent = `Send message to ${selectedSender}`;
                         messageContainer.appendChild(sendMessageLink);
                     }
-
-                    // Scroll to the first message of the selected sender
-                    if (selectedSender !== 'all') {
-                        const firstMessage = messageContainer.querySelector(`.message[data-sender="${selectedSender}"]`);
-                        if (firstMessage) {
-                            firstMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    } else {
-                        messageContainer.scrollTop = 0; // Scroll to top for 'All Messages'
-                    }
                 }
             });
 
-            // Initially show all messages
-            filterMessages('all');
+            messageTypeList.addEventListener('click', function (e) {
+                if (e.target.classList.contains('message-type-item')) {
+                    const typeItems = messageTypeList.getElementsByClassName('message-type-item');
+                    for (let item of typeItems) {
+                        item.classList.remove('active');
+                    }
+                    e.target.classList.add('active');
+                    const selectedType = e.target.getAttribute('data-type');
+                    toggleSenderList(selectedType);
+                    const selectedSender = senderList.querySelector('.sender-item.active').getAttribute('data-sender');
+                    filterMessages(selectedSender, selectedType);
+                }
+            });
+
+            const timestamps = document.querySelectorAll('.timestamp');
+            timestamps.forEach((timestamp) => {
+                const rawText = timestamp.textContent.trim();
+                // Remove fractional seconds (everything after the second's dot)
+                const cleanedText = rawText.replace(/\.\d+/, '');
+                const date = new Date(cleanedText);
+
+                if (!isNaN(date)) {
+                    timestamp.textContent = date.toLocaleString('en-US', {
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true,
+                        month: 'short',
+                        day: 'numeric',
+                    });
+                } else {
+                    console.error(`Invalid date: ${cleanedText}`);
+                }
+            });
+
+            // Initially show all received messages and hide sender list for sent messages
+            filterMessages('all', 'received');
+            toggleSenderList('received');
         });
     </script>
 </body>

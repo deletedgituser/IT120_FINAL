@@ -63,22 +63,41 @@ class InboxView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Retrieve messages and related sender information
+        # Retrieve messages received by the user
         messages = Message.objects.filter(recipient=request.user).select_related("sender")
-        
-        # Serialize the data with sender details
+
+        # Retrieve messages sent by the user
+        sent_messages = Message.objects.filter(sender=request.user).select_related("recipient")
+
+        # Serialize the received messages with sender details
         serialized_messages = [
             {
                 "id": message.id,
                 "sender_id": message.sender.id,
-                "sender_name": message.sender.username,  # Add sender name
+                "sender_name": message.sender.username,  # Sender username
                 "encrypted_content": message.encrypted_content,
                 "timestamp": message.timestamp,
             }
             for message in messages
         ]
 
-        return Response({"messages": serialized_messages})
+        # Serialize the sent messages with recipient details
+        serialized_sent_messages = [
+            {
+                "id": message.id,
+                "recipient_id": message.recipient.id,
+                "recipient_name": message.recipient.username,  # Recipient username
+                "encrypted_content": message.encrypted_content,
+                "timestamp": message.timestamp,
+            }
+            for message in sent_messages
+        ]
+
+        # Return the serialized data
+        return Response({
+            "received_messages": serialized_messages,
+            "sent_messages": serialized_sent_messages,
+        }, status=200)
 
 
 class LogoutView(APIView):

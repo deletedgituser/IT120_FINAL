@@ -63,24 +63,44 @@ def inbox(request):
     if token:    
         headers = {"Authorization": f"Token {token}"}
         response = requests.get(SERVER_URL + "inbox/", headers=headers)
-        toDisplay = []
+        
+        toDisplayReceived = []
+        toDisplaySent = []
+
         if response.status_code == 200:
-            messages = response.json()['messages']  # List of dictionaries
-            for message in messages:
+            # Handle received messages
+            received_messages = response.json().get('received_messages', [])  # Default to an empty list if key is missing
+            for message in received_messages:
                 try:
-                    # Decode the Base64 content of 'encrypted_content'
+                    # Decrypt the encrypted content
                     decoded_content = enc_instance.decrypt_text(message['encrypted_content'])
-                    message['decrypted_content'] = decoded_content  # Add a new field with the decoded content
-                    toDisplay.append(message)
+                    message['decrypted_content'] = decoded_content
+                    toDisplayReceived.append(message)
                 except (KeyError, ValueError, base64.binascii.Error):
-                    # Handle missing keys or decoding errors gracefully
+                    # Handle missing keys or decryption errors gracefully
                     message['decrypted_content'] = "Invalid content"
-                    toDisplay.append(message)
-        else:
-            toDisplay = []
-        return render(request, "inbox.html", {"messages": toDisplay})
+                    toDisplayReceived.append(message)
+
+            # Handle sent messages
+            sent_messages = response.json().get('sent_messages', [])  # Default to an empty list if key is missing
+            for message in sent_messages:
+                try:
+                    # Decrypt the encrypted content
+                    decoded_content = enc_instance.decrypt_text(message['encrypted_content'])
+                    message['decrypted_content'] = decoded_content
+                    toDisplaySent.append(message)
+                except (KeyError, ValueError, base64.binascii.Error):
+                    # Handle missing keys or decryption errors gracefully
+                    message['decrypted_content'] = "Invalid content"
+                    toDisplaySent.append(message)
+
+        return render(request, "inbox.html", {
+            "received_messages": toDisplayReceived,
+            "sent_messages": toDisplaySent
+        })
     else:
         return redirect("login")
+
 
 # Logout View
 def logout(request):
