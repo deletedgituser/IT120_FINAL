@@ -1,20 +1,276 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inbox</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 75%;
+            max-width: 1200px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #1877f2;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .logout-btn {
+            background-color: #ffffff;
+            color: #1877f2;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .logout-btn:hover {
+            background-color: #e6e6e6;
+        }
+
+        .content-area {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .sender-list {
+            width: 200px;
+            overflow-y: auto;
+            border-right: 1px solid #dddfe2;
+        }
+
+        .sender-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .sender-item:hover,
+        .sender-item.active {
+            background-color: #e4e6eb;
+        }
+
+        .chat-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .sender {
+            background-color: #e5e5ea;
+            align-self: flex-start;
+        }
+
+        .user {
+            background-color: #0084ff;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .sender-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .timestamp {
+            font-size: 0.8em;
+            color: #65676b;
+            margin-top: 5px;
+        }
+
+        .send-message-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #1877f2;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .send-message-link:hover {
+            background-color: #166fe5;
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                width: 100%;
+            }
+
+            .content-area {
+                flex-direction: column;
+            }
+
+            .sender-list {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #dddfe2;
+                max-height: 150px;
+            }
+
+            .sender-item {
+                padding: 10px;
+                display: inline-block;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <h2>Inbox</h2>
-    <ul>
-        {% for message in messages %}
-            <li>
-                <strong>{{ message.sender.username }}:</strong> 
-                {{ message.decrypted_content }}
-            </li>
-        {% endfor %}
-    </ul>
-    <div>
-        <a href="{% url 'logout' %}">Logout</a>
+    <div class="app-container">
+        <header class="header">
+            <h1>Inbox</h1>
+            <div>
+                <a href="{% url 'send_message' %}" class="logout-btn">Send Message</a>
+                <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+            </div>
+        </header>
+        <div class="content-area">
+            <aside class="sender-list" id="senderList">
+                <div class="sender-item active" data-sender="all">All Messages</div>
+                <!-- Unique senders will be populated here by JavaScript -->
+            </aside>
+            <main class="chat-area">
+                <div class="message-container" id="messageContainer">
+                    {% for message in messages %}
+                    <div class="message {% if message.sender_name == request.user.username %}user{% else %}sender{% endif %}"
+                        data-sender="{{ message.sender_name }}" data-sender-id="{{ message.sender_id }}">
+                        {% if message.sender_name != request.user.username %}
+                        <div class="sender-name">{{ message.sender_name }}</div>
+                        {% endif %}
+                        <div>{{ message.decrypted_content }}</div>
+                        <div class="timestamp">{{ message.timestamp|date:"g:i A, M d" }}</div>
+                    </div>
+                    {% empty %}
+                    <p>No messages in your inbox.</p>
+                    {% endfor %}
+                </div>
+            </main>
+        </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const senderList = document.getElementById('senderList');
+            const messageContainer = document.getElementById('messageContainer');
+            const messages = messageContainer.getElementsByClassName('message');
+            const uniqueSenders = new Map();
+
+            // Extract unique senders from messages
+            for (let message of messages) {
+                const senderName = message.getAttribute('data-sender');
+                const senderId = message.getAttribute('data-sender-id');
+                if (senderName !== '{{ request.user.username }}' && !uniqueSenders.has(senderId)) {
+                    uniqueSenders.set(senderId, senderName);
+                }
+            }
+
+            // Populate sender list
+            uniqueSenders.forEach((name, id) => {
+                const senderItem = document.createElement('div');
+                senderItem.className = 'sender-item';
+                senderItem.setAttribute('data-sender', name);
+                console.log(name);
+                senderItem.setAttribute('data-sender-id', id);
+                senderItem.textContent = name;
+                senderList.appendChild(senderItem);
+            });
+
+            function filterMessages(sender) {
+                for (let message of messages) {
+                    if (sender === 'all' || message.getAttribute('data-sender') === sender) {
+                        message.style.display = 'block';
+                    } else {
+                        message.style.display = 'none';
+                    }
+                }
+            }
+
+            senderList.addEventListener('click', function (e) {
+                if (e.target.classList.contains('sender-item')) {
+                    const senderItems = senderList.getElementsByClassName('sender-item');
+                    for (let item of senderItems) {
+                        item.classList.remove('active');
+                    }
+                    e.target.classList.add('active');
+                    const selectedSender = e.target.getAttribute('data-sender');
+                    filterMessages(selectedSender);
+
+                    // Remove existing send message link
+                    const existingLink = document.querySelector('.send-message-link');
+                    if (existingLink) {
+                        existingLink.remove();
+                    }
+
+                    // Add send message link for the selected sender
+                    if (selectedSender !== 'all') {
+                        const senderId = e.target.getAttribute('data-sender');
+                        const sendMessageLink = document.createElement('a');
+                        sendMessageLink.href = `{% url 'send_message' %}?recipient=${senderId}`;
+                        sendMessageLink.className = 'send-message-link';
+                        sendMessageLink.textContent = `Send message to ${selectedSender}`;
+                        messageContainer.appendChild(sendMessageLink);
+                    }
+
+                    // Scroll to the first message of the selected sender
+                    if (selectedSender !== 'all') {
+                        const firstMessage = messageContainer.querySelector(`.message[data-sender="${selectedSender}"]`);
+                        if (firstMessage) {
+                            firstMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    } else {
+                        messageContainer.scrollTop = 0; // Scroll to top for 'All Messages'
+                    }
+                }
+            });
+
+            // Initially show all messages
+            filterMessages('all');
+        });
+    </script>
 </body>
+
 </html>

@@ -1,20 +1,188 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Send Message</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 50%;
+            /* max-width: 60%; */
+            margin: 0 auto;
+        }
+
+        h2 {
+            color: #1877f2;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 0.5rem;
+            color: #65676b;
+        }
+
+        select,
+        textarea {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border: 1px solid #dddfe2;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background-color: #1877f2;
+            color: #ffffff;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #166fe5;
+        }
+
+        .header {
+            background-color: #1877f2;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .logout-btn {
+            background-color: #ffffff;
+            color: #1877f2;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .app-container {
+            width: 75%;
+            max-width: 1200px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
+
 <body>
-    <h2>Send Message</h2>
-    <form method="post">
-        {% csrf_token %}
-        <label>Recipient:</label><br>
-        <input type="text" name="recipient" required><br>
-        <label>Message:</label><br>
-        <textarea name="message" required></textarea><br>
-        <button type="submit">Send</button>
-    </form>
-    <div>
-        <a href="{% url 'logout' %}">Logout</a>
+    <div class="app-container">
+        <header class="header">
+            <h1>Send Message</h1>
+            <div>
+                <a href="{% url 'inbox' %}" class="logout-btn">Inbox</a>
+                <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+            </div>
+        </header>
+        <div class="container">
+            <h2>Send Message</h2>
+            <form method="post">
+                {% csrf_token %}
+                <label for="recipient-select">Recipient:</label>
+                <select id="recipient-select" name="recipient" required>
+                    <option value="" disabled selected>Select a recipient</option>
+                    <!-- Options will be populated here by JavaScript -->
+                </select>
+                <label for="message">Message:</label>
+                <textarea id="message" name="message" required></textarea>
+                <button type="submit">Send</button>
+            </form>
+        </div>
     </div>
+
+    <script>
+        // Existing JavaScript code (unchanged)
+        const queryParams = new URLSearchParams(window.location.search);
+        const authToken = queryParams.get('token');
+        if (authToken) {
+            localStorage.setItem('token', authToken);
+        }
+        const recipient_name = queryParams.get('recipient');
+
+        async function fetchRecipients() {
+            const token = localStorage.getItem('token');
+            console.log(token);
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/users/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${token}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const recipients = await response.json();
+                console.log(recipients)
+                populateRecipientDropdown(recipients.users, recipient_name);
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+            }
+        }
+
+        function populateRecipientDropdown(recipients, recipient_name) {
+            const recipientSelect = document.getElementById('recipient-select');
+            recipientSelect.innerHTML = '<option value="" disabled selected>Select a recipient</option>';
+            recipients.forEach(recipient => {
+                const option = document.createElement('option');
+                option.value = recipient.username;
+                option.textContent = recipient.username;
+                if (recipient_name && recipient.username === recipient_name) {
+                    option.selected = true;
+                }
+                recipientSelect.appendChild(option);
+            });
+        }
+
+        window.onload = fetchRecipients;
+    </script>
 </body>
+
 </html>

@@ -1,17 +1,122 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            color: #1877f2;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 0.5rem;
+            color: #65676b;
+        }
+
+        input {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border: 1px solid #dddfe2;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            background-color: #1877f2;
+            color: #ffffff;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #166fe5;
+        }
+
+        .reg {
+            box-sizing: border-box;
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+            margin-top: 5px;
+            padding: 0.75rem;
+            background-color: grey;
+            border-radius: 4px;
+        }
+
+        .reg a {
+            color: white;
+            text-decoration: none;
+            padding: 20px 150px;
+        }
+
+        .reg:hover {
+            background-color: #65676b;
+        }
+    </style>
 </head>
+
 <body>
-    <h2>Login</h2>
-    <form method="post">
-        {% csrf_token %}
-        <label>Username:</label><br>
-        <input type="text" name="username" required><br>
-        <label>Password:</label><br>
-        <input type="password" name="password" required><br>
-        <button type="submit">Login</button>
-    </form>
+    <div class="container">
+        <h2>Login</h2>
+        <form method="post">
+            {% csrf_token %}
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+        <div class="reg">
+            <a href="{% url 'register' %}">Register</a>
+        </div>
+    </div>
+
+    <script>
+        const queryParams = new URLSearchParams(window.location.search);
+        const message = queryParams.get('message');
+
+        function messageExists() {
+            if (message) {
+                localStorage.removeItem('token');
+                alert(message);
+            }
+        }
+        window.onload = messageExists;
+    </script>
 </body>
+
 </html>

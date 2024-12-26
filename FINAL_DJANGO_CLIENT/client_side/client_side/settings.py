@@ -38,10 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'client_chat',
-    'rest_framework'
+    'rest_framework',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -71,6 +73,18 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'client_side.wsgi.application'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8001",  # Frontend URL
+]
+
+CORS_ALLOW_HEADERS = [
+    "content-type",
+    "authorization",
+    "x-requested-with",
+    "x-csrftoken",
+    "accept",
+]
 
 
 # Database

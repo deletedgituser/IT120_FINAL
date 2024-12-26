@@ -21,6 +21,9 @@ def register(request):
 
 # Login View
 def login(request):
+    token = request.session.get("token")
+    if token:
+        return redirect(f"/send_message/?token={token}")
     enc_instance = EncryptionMiddleware(None)
     if request.method == "POST":
         username = request.POST["username"]
@@ -28,9 +31,11 @@ def login(request):
         enc_username = enc_instance.encrypt_text(username)
         enc_password = enc_instance.encrypt_text(password)
         response = requests.post(SERVER_URL + "login/", data={"username": enc_username, "password": enc_password})
+        
         if response.status_code == 200:
             request.session["token"] = response.json()["token"]
-            return redirect("send_message")
+            token = request.session.get('token')
+            return redirect(f"/send_message/?token={token}")
     return render(request, "login.html")
 
 # Send Message View
@@ -40,6 +45,7 @@ def send_message(request):
         if request.method == "POST":
             recipient = request.POST["recipient"]
             message = request.POST["message"]
+            print(recipient)
             enc_instance = EncryptionMiddleware(None)
             enc_message = enc_instance.encrypt_text(message)
             headers = {"Authorization": f"Token {token}"}
@@ -59,7 +65,7 @@ def inbox(request):
         response = requests.get(SERVER_URL + "inbox/", headers=headers)
         toDisplay = []
         if response.status_code == 200:
-            messages = response.json()  # List of dictionaries
+            messages = response.json()['messages']  # List of dictionaries
             for message in messages:
                 try:
                     # Decode the Base64 content of 'encrypted_content'
@@ -83,5 +89,7 @@ def logout(request):
         headers = {"Authorization": f"Token {token}"}
         response = requests.post(SERVER_URL + "logout/", headers=headers)
         if response.status_code == 200:
+            message = response.json().get('message');
+            print(message)
             request.session.flush()  # Clear the session
-    return redirect("login")
+    return redirect(f"/login/?message={message}")

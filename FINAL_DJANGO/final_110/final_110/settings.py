@@ -39,10 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "server_side",
     "rest_framework",
-    'rest_framework.authtoken'
+    'rest_framework.authtoken',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -72,6 +74,19 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'final_110.wsgi.application'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8001",  # Frontend URL
+]
+
+CORS_ALLOW_HEADERS = [
+    "x-requested-with",
+    "x-csrftoken",
+    "accept",
+    'Application-Type',
+    'Authorization',
+    'Content-Type'
+]
 
 
 # Database

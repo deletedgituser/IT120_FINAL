@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from .models import Message
-from .serializers import MessageSerializer
+from .serializers import MessageSerializer, UserSerializer
 from server_side.middlewares.encryption_middleware import EncryptionMiddleware
 
 class RegisterView(APIView):
@@ -63,9 +63,23 @@ class InboxView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        messages = Message.objects.filter(recipient=request.user)
-        serializer = MessageSerializer(messages, many=True)
-        return Response(serializer.data)
+        # Retrieve messages and related sender information
+        messages = Message.objects.filter(recipient=request.user).select_related("sender")
+        
+        # Serialize the data with sender details
+        serialized_messages = [
+            {
+                "id": message.id,
+                "sender_id": message.sender.id,
+                "sender_name": message.sender.username,  # Add sender name
+                "encrypted_content": message.encrypted_content,
+                "timestamp": message.timestamp,
+            }
+            for message in messages
+        ]
+
+        return Response({"messages": serialized_messages})
+
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -76,3 +90,12 @@ class LogoutView(APIView):
             return Response({'message': 'Logged out successfully'}, status=200)
         except Exception:
             return Response({'error': 'Failed to log out'}, status=400)
+
+
+class UsersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        users = User.objects.exclude(id=request.user.id)
+        serializer = UserSerializer(users, many=True)
+        return Response({'users': serializer.data} ,status=200)
