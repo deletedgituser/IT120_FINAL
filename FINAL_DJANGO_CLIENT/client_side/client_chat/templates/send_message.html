@@ -5,139 +5,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Send Message</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f2f5;
-            color: #1c1e21;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            width: 100%;
-        }
-
-        .container {
-            background-color: #ffffff;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            width: 50%;
-            /* max-width: 60%; */
-            margin: 0 auto;
-        }
-
-        h2 {
-            color: #1877f2;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            margin-bottom: 0.5rem;
-            color: #65676b;
-        }
-
-        select,
-        textarea {
-            margin-bottom: 1rem;
-            padding: 0.5rem;
-            border: 1px solid #dddfe2;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        button {
-            background-color: #1877f2;
-            color: #ffffff;
-            border: none;
-            padding: 0.75rem;
-            border-radius: 4px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #166fe5;
-        }
-
-        .header {
-            background-color: #1877f2;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-
-        .logout-btn {
-            background-color: #ffffff;
-            color: #1877f2;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .app-container {
-            width: 75%;
-            max-width: 1200px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-color: #ffffff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        fadeIn: "fadeIn 0.5s ease-in-out",
+                        bounceSlow: "bounce 2s infinite",
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            "0%": { opacity: 0 },
+                            "100%": { opacity: 1 },
+                        },
+                    },
+                },
+            },
+        };
+    </script>
 </head>
 
-<body>
-    <div class="app-container">
-        <header class="header">
-            <h1>Send Message</h1>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-4xl mx-auto shadow-lg bg-gray-800 rounded-lg border border-gray-700 animate-fadeIn">
+        <!-- Header -->
+        <header class="flex items-center justify-between p-5 bg-gray-700 border-b border-gray-600">
+            <h1 class="text-2xl font-bold flex items-center">
+                <i class="fa-solid fa-paper-plane text-green-400 mr-2"></i> WeChat
+            </h1>
             <div>
-                <a href="{% url 'inbox' %}" class="logout-btn">Inbox</a>
-                <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+                <a href="{% url 'inbox' %}" class="text-sm px-4 py-2 rounded bg-gray-600 hover:bg-green-500 hover:text-black transition">
+                    <i class="fa-solid fa-inbox mr-1"></i> Inbox
+                </a>
+                <a href="{% url 'logout' %}" class="text-sm px-4 py-2 rounded bg-gray-600 hover:bg-red-500 hover:text-black transition ml-2">
+                    <i class="fa-solid fa-sign-out-alt mr-1"></i> Logout
+                </a>
             </div>
         </header>
-        <div class="container">
-            <h2>Send Message</h2>
-            <form method="post">
+
+        <!-- Message Form -->
+        <div class="p-6">
+            <h2 class="text-xl font-semibold mb-6 text-center flex items-center justify-center">
+                <i class="fa-solid fa-envelope text-green-400 mr-2"></i> Send Message
+            </h2>
+            <form method="post" class="space-y-6 animate-fadeIn">
                 {% csrf_token %}
-                <label for="recipient-select">Recipient:</label>
-                <select id="recipient-select" name="recipient" required>
-                    <option value="" disabled selected>Select a recipient</option>
-                    <!-- Options will be populated here by JavaScript -->
-                </select>
-                <label for="message">Message:</label>
-                <textarea id="message" name="message" required></textarea>
-                <button type="submit">Send</button>
+                <div>
+                    <label for="recipient-select" class="block mb-2 font-medium">
+                        <i class="fa-solid fa-user text-green-400 mr-1"></i> Recipient
+                    </label>
+                    <select id="recipient-select" name="recipient" required
+                        class="block w-full px-4 py-3 rounded bg-gray-700 border border-gray-600 text-white appearance-none focus:ring-2 focus:ring-green-400 focus:border-green-400">
+                        <option value="" disabled selected>Select a recipient</option>
+                        <!-- Dynamic options will be populated here -->
+                    </select>
+                </div>
+
+                <div>
+                    <label for="message" class="block mb-2 font-medium">
+                        <i class="fa-solid fa-comment text-green-400 mr-1"></i> Message
+                    </label>
+                    <textarea id="message" name="message" required
+                        class="block w-full px-4 py-3 rounded bg-gray-700 border border-gray-600 text-white resize-none focus:ring-2 focus:ring-green-400 focus:border-green-400"
+                        placeholder="Write your message here..."></textarea>
+                </div>
+
+                <div class="flex justify-center">
+                    <button type="submit"
+                        class="flex items-center bg-green-500 text-black px-6 py-3 rounded-lg font-medium hover:bg-green-400 hover:shadow-lg transition duration-300">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> Send
+                    </button>
+                </div>
             </form>
         </div>
     </div>
 
     <script>
-        // Existing JavaScript code (unchanged)
+        // Fetching and populating recipients dynamically
         const queryParams = new URLSearchParams(window.location.search);
         const authToken = queryParams.get('token');
         if (authToken) {
@@ -147,7 +91,6 @@
 
         async function fetchRecipients() {
             const token = localStorage.getItem('token');
-            console.log(token);
             try {
                 const response = await fetch('http://127.0.0.1:8000/api/users/', {
                     method: 'GET',
@@ -157,13 +100,12 @@
                     }
                 });
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error('Failed to fetch recipients');
                 }
                 const recipients = await response.json();
-                console.log(recipients)
                 populateRecipientDropdown(recipients.users, recipient_name);
             } catch (error) {
-                console.error('There was a problem with the fetch operation:', error);
+                console.error('Error fetching recipients:', error);
             }
         }
 
@@ -183,6 +125,9 @@
 
         window.onload = fetchRecipients;
     </script>
+
+    <!-- Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 </body>
 
 </html>

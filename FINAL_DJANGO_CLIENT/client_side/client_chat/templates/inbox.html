@@ -1,239 +1,117 @@
-{% load static %}
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inbox</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f2f5;
-            color: #1c1e21;
-            display: flex;
-            justify-content: center;
-        }
-
-        .app-container {
-            width: 75%;
-            max-width: 1200px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-color: #ffffff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .header {
-            background-color: #1877f2;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-
-        .btn {
-            background-color: #ffffff;
-            color: #1877f2;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .btn:hover {
-            background-color: #e6e6e6;
-        }
-
-        .content-area {
-            display: flex;
-            flex-grow: 1;
-            overflow: hidden;
-        }
-
-        .sidebar {
-            width: 250px;
-            overflow-y: auto;
-            border-right: 1px solid #dddfe2;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message-type-list {
-            display: flex;
-            border-bottom: 1px solid #dddfe2;
-        }
-
-        .message-type-item {
-            flex: 1;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color 0.3s, color 0.3s;
-            font-weight: bold;
-        }
-
-        .message-type-item:hover,
-        .message-type-item.active {
-            background-color: #1877f2;
-            color: white;
-        }
-
-        .sender-list {
-            overflow-y: auto;
-            max-height: calc(100vh - 120px);
-        }
-
-        .sender-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .sender-item:hover,
-        .sender-item.active {
-            background-color: #e4e6eb;
-        }
-
-        .chat-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message-container {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            border-radius: 18px;
-            max-width: 70%;
-            word-wrap: break-word;
-        }
-
-        .sender {
-            background-color: #e5e5ea;
-            align-self: flex-start;
-        }
-
-        .user {
-            background-color: #e5e5ea;
-            align-self: flex-end;
-        }
-
-        .sender-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .timestamp {
-            font-size: 0.8em;
-            color: #65676b;
-            margin-top: 5px;
-        }
-
-        .send-message-link {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 5px 10px;
-            background-color: #1877f2;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
-        .send-message-link:hover {
-            background-color: #166fe5;
-        }
-
-        @media (max-width: 768px) {
-            .app-container {
-                width: 100%;
-            }
-
-            .content-area {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid #dddfe2;
-            }
-
-            .message-type-list {
-                flex-direction: row;
-            }
-
-            .sender-list {
-                display: flex;
-                overflow-x: auto;
-                max-height: none;
-            }
-
-            .sender-item {
-                padding: 10px;
-                white-space: nowrap;
+    <title>WeChat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            DEFAULT: '#1e1f2e',
+                            lighter: '#282a36'
+                        },
+                        accent: {
+                            DEFAULT: '#00ff9d',
+                            hover: 'rgba(0, 255, 157, 0.1)'
+                        }
+                    }
+                }
             }
         }
-    </style>
+    </script>
 </head>
 
-<body>
-    <div class="app-container">
-        <header class="header">
-            <h1>Inbox</h1>
-            <div>
-                <a href="{% url 'send_message' %}" class="btn">Send Message</a>
-                <a href="{% url 'logout' %}" class="btn">Logout</a>
+<body class="bg-dark text-white min-h-screen flex justify-center">
+    <div class="w-[75%] max-w-[1200px] h-screen flex flex-col bg-dark-lighter shadow-2xl border border-white/10">
+        <!-- Header -->
+        <header class="bg-dark-lighter p-4 flex justify-between items-center border-b border-white/10">
+            <h1 class="text-2xl flex items-center gap-2">
+                <i class="fas fa-paper-plane text-accent"></i>
+                WeChat
+            </h1>
+            <div class="flex gap-2">
+                <a href="{% url 'send_message' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 hover:bg-accent-hover hover:border-accent hover:text-accent transition-all">
+                    <i class="fas fa-inbox text-accent"></i>
+                    Send Message
+                </a>
+                <a href="{% url 'logout' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 hover:bg-accent-hover hover:border-accent hover:text-accent transition-all">
+                    <i class="fas fa-sign-out-alt text-accent"></i>
+                    Logout
+                </a>
             </div>
         </header>
-        <div class="content-area">
-            <aside class="sidebar">
-                <div class="message-type-list" id="messageTypeList">
-                    <div class="message-type-item active" data-type="received">Received</div>
-                    <div class="message-type-item" data-type="sent">Sent</div>
+
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-dark border-r border-white/10 flex flex-col">
+                <!-- Message Type Tabs -->
+                <div class="flex border-b border-white/10" id="messageTypeList">
+                    <button class="flex-1 p-4 flex items-center justify-center gap-2 hover:bg-accent-hover hover:text-accent transition-all message-type-item active" data-type="received">
+                        <i class="fas fa-envelope-open text-accent"></i>
+                        Received
+                    </button>
+                    <button class="flex-1 p-4 flex items-center justify-center gap-2 hover:bg-accent-hover hover:text-accent transition-all message-type-item" data-type="sent">
+                        <i class="fas fa-paper-plane text-accent"></i>
+                        Sent
+                    </button>
                 </div>
-                <div class="sender-list" id="senderList">
-                    <div class="sender-item active" data-sender="all">All Messages</div>
-                    <!-- Unique senders will be populated here by JavaScript -->
+                <!-- Sender List -->
+                <div class="overflow-y-auto flex-1" id="senderList">
+                    <div class="p-3 flex items-center gap-2 hover:bg-accent-hover hover:text-accent cursor-pointer transition-all sender-item active" data-sender="all">
+                        <i class="fas fa-users text-accent"></i>
+                        All Messages
+                    </div>
                 </div>
             </aside>
-            <main class="chat-area">
-                <div class="message-container" id="messageContainer">
+
+            <!-- Main Chat Area -->
+            <main class="flex-1 flex flex-col bg-dark-lighter">
+                <div class="flex-1 overflow-y-auto p-6" id="messageContainer">
                     {% for message in received_messages %}
-                    <div class="message sender" data-sender="{{ message.sender_name }}" data-type="received"
-                        data-timestamp="{{ message.timestamp|date:'Y-m-d' }}">
-                        <div class="sender-name">{{ message.sender_name }}</div>
-                        <div>{{ message.decrypted_content }}</div>
-                        <div class="timestamp">{{ message.timestamp }}</div>
+                    <div class="message mb-4 p-4 rounded-xl max-w-[70%] bg-dark border border-white/10 shadow-lg" 
+                         data-sender="{{ message.sender_name }}" 
+                         data-type="received"
+                         data-timestamp="{{ message.timestamp|date:'Y-m-d' }}">
+                        <div class="flex items-center gap-2 text-accent mb-2">
+                            <i class="fas fa-user"></i>
+                            {{ message.sender_name }}
+                        </div>
+                        <div class="text-white/90">{{ message.decrypted_content }}</div>
+                        <div class="flex items-center gap-1 text-white/50 text-sm mt-2">
+                            <i class="far fa-clock"></i>
+                            {{ message.timestamp }}
+                        </div>
                     </div>
                     {% endfor %}
+
                     {% for message in sent_messages %}
-                    <div class="message user" data-sender="{{ message.recipient_name }}" data-type="sent"
-                        data-timestamp="{{ message.timestamp|date:'Y-m-d' }}">
-                        <div class="sender-name">To: {{ message.recipient_name }}</div>
+                    <div class="message mb-4 p-4 rounded-xl max-w-[70%] ml-auto bg-accent-hover border border-accent/20 text-accent shadow-lg"
+                         data-sender="{{ message.recipient_name }}"
+                         data-type="sent"
+                         data-timestamp="{{ message.timestamp|date:'Y-m-d' }}">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fas fa-user"></i>
+                            To: {{ message.recipient_name }}
+                        </div>
                         <div>{{ message.decrypted_content }}</div>
-                        <div class="timestamp">{{ message.timestamp }}</div>
+                        <div class="flex items-center gap-1 text-accent/50 text-sm mt-2">
+                            <i class="far fa-clock"></i>
+                            {{ message.timestamp }}
+                        </div>
                     </div>
                     {% endfor %}
+
                     {% if not received_messages and not sent_messages %}
-                    <p>No messages in your inbox.</p>
+                    <p class="text-center text-white/50">
+                        <i class="fas fa-inbox text-accent"></i>
+                        No messages in your inbox.
+                    </p>
                     {% endif %}
                 </div>
             </main>
@@ -253,120 +131,105 @@
                 return parseInt(b.getAttribute('data-timestamp')) - parseInt(a.getAttribute('data-timestamp'));
             });
 
-            // Reorder messages in the DOM
             messages.forEach(message => messageContainer.appendChild(message));
 
-            // Extract unique senders from received messages
-            for (let message of messages) {
+            // Extract unique senders
+            messages.forEach(message => {
                 if (message.getAttribute('data-type') === 'received') {
                     const senderName = message.getAttribute('data-sender');
                     if (senderName !== '{{ request.user.username }}') {
                         uniqueSenders.add(senderName);
                     }
                 }
-            }
+            });
 
             // Populate sender list
             uniqueSenders.forEach((name) => {
                 const senderItem = document.createElement('div');
-                senderItem.className = 'sender-item';
+                senderItem.className = 'p-3 flex items-center gap-2 hover:bg-accent-hover hover:text-accent cursor-pointer transition-all sender-item';
                 senderItem.setAttribute('data-sender', name);
-                senderItem.textContent = name;
+                senderItem.innerHTML = `<i class="fas fa-user text-accent"></i>${name}`;
                 senderList.appendChild(senderItem);
             });
 
             function filterMessages(sender, type) {
-                for (let message of messages) {
+                messages.forEach(message => {
                     const messageSender = message.getAttribute('data-sender');
                     const messageType = message.getAttribute('data-type');
-                    if ((sender === 'all' || messageSender === sender) && (type === 'all' || messageType === type)) {
-                        message.style.display = 'block';
-                    } else {
-                        message.style.display = 'none';
-                    }
-                }
+                    message.style.display = 
+                        (sender === 'all' || messageSender === sender) && 
+                        (type === 'all' || messageType === type) 
+                            ? 'block' 
+                            : 'none';
+                });
             }
 
             function toggleSenderList(type) {
-                if (type === 'sent') {
-                    // Remove existing send message link
-                    const existingLink = document.querySelector('.send-message-link');
-                    if (existingLink) {
-                        existingLink.remove();
-                    }
-                    senderList.style.display = 'none';
-                } else {
-                    senderList.style.display = 'block';
-                }
+                const existingLink = document.querySelector('.send-message-link');
+                if (existingLink) existingLink.remove();
+                senderList.style.display = type === 'sent' ? 'none' : 'block';
             }
 
-            senderList.addEventListener('click', function (e) {
-                if (e.target.classList.contains('sender-item')) {
-                    const senderItems = senderList.getElementsByClassName('sender-item');
-                    for (let item of senderItems) {
-                        item.classList.remove('active');
-                    }
-                    e.target.classList.add('active');
-                    const selectedSender = e.target.getAttribute('data-sender');
-                    const selectedType = messageTypeList.querySelector('.message-type-item.active').getAttribute('data-type');
-                    filterMessages(selectedSender, selectedType);
+            // Event Listeners
+            senderList.addEventListener('click', function(e) {
+                const senderItem = e.target.closest('.sender-item');
+                if (!senderItem) return;
 
-                    // Remove existing send message link
-                    const existingLink = document.querySelector('.send-message-link');
-                    if (existingLink) {
-                        existingLink.remove();
-                    }
+                senderList.querySelectorAll('.sender-item').forEach(item => item.classList.remove('active'));
+                senderItem.classList.add('active');
 
-                    // Add send message link for the selected sender
-                    if (selectedSender !== 'all') {
-                        const sendMessageLink = document.createElement('a');
-                        sendMessageLink.href = `{% url 'send_message' %}?recipient=${selectedSender}`;
-                        sendMessageLink.className = 'send-message-link';
-                        sendMessageLink.textContent = `Send message to ${selectedSender}`;
-                        messageContainer.appendChild(sendMessageLink);
-                    }
+                const selectedSender = senderItem.getAttribute('data-sender');
+                const selectedType = messageTypeList.querySelector('.message-type-item.active').getAttribute('data-type');
+                
+                filterMessages(selectedSender, selectedType);
+
+                const existingLink = document.querySelector('.send-message-link');
+                if (existingLink) existingLink.remove();
+
+                if (selectedSender !== 'all') {
+                    const sendMessageLink = document.createElement('a');
+                    sendMessageLink.href = `{% url 'send_message' %}?recipient=${selectedSender}`;
+                    sendMessageLink.className = 'send-message-link inline-flex items-center gap-2 px-4 py-2 mt-4 rounded-lg border border-accent/20 bg-accent-hover text-accent hover:bg-accent-hover/80 transition-all';
+                    sendMessageLink.innerHTML = `<i class="fas fa-paper-plane"></i>Send message to ${selectedSender}`;
+                    messageContainer.appendChild(sendMessageLink);
                 }
             });
 
-            messageTypeList.addEventListener('click', function (e) {
-                if (e.target.classList.contains('message-type-item')) {
-                    const typeItems = messageTypeList.getElementsByClassName('message-type-item');
-                    for (let item of typeItems) {
-                        item.classList.remove('active');
-                    }
-                    e.target.classList.add('active');
-                    const selectedType = e.target.getAttribute('data-type');
-                    toggleSenderList(selectedType);
-                    const selectedSender = senderList.querySelector('.sender-item.active').getAttribute('data-sender');
-                    filterMessages(selectedSender, selectedType);
-                }
+            messageTypeList.addEventListener('click', function(e) {
+                const typeItem = e.target.closest('.message-type-item');
+                if (!typeItem) return;
+
+                messageTypeList.querySelectorAll('.message-type-item').forEach(item => item.classList.remove('active'));
+                typeItem.classList.add('active');
+
+                const selectedType = typeItem.getAttribute('data-type');
+                const selectedSender = senderList.querySelector('.sender-item.active')?.getAttribute('data-sender') || 'all';
+                
+                toggleSenderList(selectedType);
+                filterMessages(selectedSender, selectedType);
             });
 
-            const timestamps = document.querySelectorAll('.timestamp');
-            timestamps.forEach((timestamp) => {
+            // Format timestamps
+            document.querySelectorAll('.timestamp').forEach((timestamp) => {
                 const rawText = timestamp.textContent.trim();
-                // Remove fractional seconds (everything after the second's dot)
                 const cleanedText = rawText.replace(/\.\d+/, '');
                 const date = new Date(cleanedText);
 
                 if (!isNaN(date)) {
-                    timestamp.textContent = date.toLocaleString('en-US', {
+                    timestamp.innerHTML = `<i class="far fa-clock"></i> ${date.toLocaleString('en-US', {
                         hour: 'numeric',
                         minute: 'numeric',
                         hour12: true,
                         month: 'short',
                         day: 'numeric',
-                    });
-                } else {
-                    console.error(`Invalid date: ${cleanedText}`);
+                    })}`;
                 }
             });
 
-            // Initially show all received messages and hide sender list for sent messages
+            // Initial state
             filterMessages('all', 'received');
             toggleSenderList('received');
         });
     </script>
 </body>
-
 </html>
